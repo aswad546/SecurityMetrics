@@ -36,7 +36,7 @@ for statistical attacks.
           |                                         |
           -------------------------------------------
           
-A high level of components is provided below:
+A high level overview of components is provided below:
 
 ### External Dataset Parser
 This module interfaces with external datasets. 
