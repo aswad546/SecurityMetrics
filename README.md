@@ -67,8 +67,9 @@ For example usage of this module refer to pipe_line_usage.py and pipe_line_usage
 
 Run following commands to install from the source 
 ```
-git clone 
+git clone https://github.com/sohailhabib/SecurityMetrics.git
 cd SecurityMetrics
+cd source_code
 python setup.py install
 ```
 ## Examples
