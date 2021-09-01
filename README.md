@@ -5,7 +5,7 @@ This project evaluates biometrics for vulnerability against statistical attacks.
 A new statistical attack and defence are proposed and evaluated. The framework provided here
 enables quick prototyping of machine learning pipelines.  
 The proposed attack is successful against a variety of biometrics and require the fewest attempts for successful attack.
-Code for statistical attack is not released yes as the paper is under submission.
+Code for statistical attack is not released yet as the paper is under submission.
 Email me if you are interested in code
 for statistical attacks.
 
