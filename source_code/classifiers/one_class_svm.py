@@ -30,10 +30,10 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.svm import OneClassSVM
 
-from classifiers.classifier import Classifier
-from utilities.classifier_utilities import predict
-from utilities.classifier_utilities import random_train_best_parametres
-from utilities.classifier_utilities import train_best_parametres
+from source_code.classifiers.classifier import Classifier
+from source_code.utilities.classifier_utilities import predict
+from source_code.utilities.classifier_utilities import random_train_best_parametres
+from source_code.utilities.classifier_utilities import train_best_parametres
 
 
 class OneClassSvmClassifier(Classifier):

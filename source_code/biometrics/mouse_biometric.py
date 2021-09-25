@@ -29,7 +29,7 @@ import numpy as np
 import numpy.linalg as la
 from statistics import stdev
 from statistics import mean
-from biometrics.biometric import Biometric
+from source_code.biometrics.biometric import Biometric
 
 
 class MouseBiometric(Biometric):

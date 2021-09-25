@@ -22,8 +22,8 @@ False Positive Acceptance Percentage
 =====================
 This class takes in data with predictions to calculate false positives
 """
-from analytics.analytics import Analytics
-from metrics.confusion_matrix import ConfusionMatrix
+from source_code.analytics.analytics import Analytics
+from source_code.metrics.confusion_matrix import ConfusionMatrix
 import sys
 
 

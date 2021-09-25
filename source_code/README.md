@@ -74,3 +74,81 @@ python setup.py install
 ```
 ## Examples
 Refer to example folder for details
+
+# Datasets
+Datasets can be downloaded from the links in the subsections. 
+## Touch
+Download link:
+
+http://www.cs.wm.edu/~qyang/hmog.html
+
+Paper reference:
+
+@misc{sitova2015hmog_dataset,
+  title={HMOG: New behavioral biometric features for continuous authentication of smartphone users},
+  author={Sitov{\'a}, Zde{\v{n}}ka and {\v{S}}ed{\v{e}}nka, Jaroslav and Yang, Qing and Peng, Ge and Zhou, Gang and Gasti, Paolo and Balagani, Kiran S},
+  url={http://www.cs.wm.edu/~qyang/hmog.html},
+}
+
+## Keystroke Dynamics
+Download link:
+
+https://www.cs.cmu.edu/~keystroke/
+
+Paper reference:
+
+@inproceedings{killourhy2009comparing,
+  title={Comparing anomaly-detection algorithms for keystroke dynamics},
+  author={Killourhy, Kevin S and Maxion, Roy A},
+  booktitle={2009 IEEE/IFIP International Conference on Dependable Systems \& Networks},
+  pages={125--134},
+  year={2009},
+  organization={IEEE}
+}
+
+## Mouse Movement
+Download link:
+
+https://ora.ox.ac.uk/objects/uuid:0175c157-2c9b-47d0-aa77-febaf07fca71
+
+Paper reference:
+
+@inproceedings{eberz2018your,
+  title={When your fitness tracker betrays you: Quantifying the predictability of biometric features across contexts},
+  author={Eberz, Simon and Lovisotto, Giulio and Patane, Andrea and Kwiatkowska, Marta and Lenders, Vincent and Martinovic, Ivan},
+  booktitle={2018 IEEE Symposium on Security and Privacy (SP)},
+  pages={889--905},
+  year={2018},
+  organization={IEEE}
+}
+
+## Gait
+Download link:
+
+https://drive.google.com/drive/folders/1KOm-zROeOZH3e2tqYUpHAvIaBZSJGFm_
+
+Paper reference:
+
+@article{zou2020deep,
+  title={Deep learning-based gait recognition using smartphones in the wild},
+  author={Zou, Qin and Wang, Yanling and Wang, Qian and Zhao, Yi and Li, Qingquan},
+  journal={IEEE Transactions on Information Forensics and Security},
+  volume={15},
+  pages={3197--3212},
+  year={2020},
+  publisher={IEEE}
+}
+
+## Voice
+Download link:
+
+https://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox2.html
+
+Paper reference:
+
+@article{chung2018voxceleb2,
+  title={Voxceleb2: Deep speaker recognition},
+  author={Chung, Joon Son and Nagrani, Arsha and Zisserman, Andrew},
+  journal={Interspeech},
+  year={2018}
+}

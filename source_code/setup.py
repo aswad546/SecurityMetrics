@@ -33,11 +33,13 @@ REQUIRED = [
     'matplotlib',
     'scipy',
     'kneed',
+
 ]
 
 # Optional packages
 EXTRAS = {
-    'seaborn'
+    'seaborn',
+    'sklearnex'
 }
 
 # If you do change the License, remember to change the Trove Classifier for that!

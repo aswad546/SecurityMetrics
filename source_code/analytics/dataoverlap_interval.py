@@ -27,8 +27,8 @@ import sys
 
 import pandas as pd
 
-from analytics.analytics import Analytics
-from dataset.outlier_removal import OutLierRemoval
+from source_code.analytics.analytics import Analytics
+from source_code.dataset.outlier_removal import OutLierRemoval
 
 
 def over_lap_range(ser1, ser2):

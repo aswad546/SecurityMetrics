@@ -38,7 +38,7 @@ IEEE Transactions on Information Forensics and Security, 2020.
 
 """
 
-from biometrics.biometric import Biometric
+from source_code.biometrics.biometric import Biometric
 from scipy import fftpack
 import numpy as np
 import pandas as pd
