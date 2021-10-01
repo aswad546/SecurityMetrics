@@ -25,7 +25,6 @@ then refer to the comments in the classifier section for instructions, only few 
 
 Note: This experiment would need data from hypervolume calculation which can be done by using the R script (hyper_vol_usage.R)
        This experiment uses optional sklearnex package to provoide optimization for sklearn library running on intel processors
-TODO Update experiment class to paramatrize classifer selection
 """
 import collections
 import sys
@@ -35,7 +34,6 @@ from source_code.adversaries.kpp_attack import KppAttack
 from source_code.adversaries.mk_attack import MkAttack
 from source_code.adversaries.stat_attack import StatAttack
 from source_code.adversaries.hyp_attack import HypVolAttack
-from classifiers.svm_classifier import SvmClassifier
 from source_code.dataset.biometric_dataset import BioDataSet
 import numpy as np
 import pandas as pd
@@ -48,16 +46,14 @@ from source_code.metrics.fcs import FCS
 from source_code.metrics.roc_curve import RocCurve
 from source_code.synth_data_gen.gauss_blob_generator import GaussBlob
 from source_code.analytics.dataoverlap_interval import OverLapInt
-# Commnet out two lines below if not using an intel processor or sklearnex is not installed
-from sklearnex import patch_sklearn
-patch_sklearn()
+import traceback
 
 
-class HypExpSvm:
+class HypExp:
     def __init__(self, pop_df, attack_df, pop_classifier_path, pos_user_per_dim_ol_path, active_gr,
                  results_save_path=None,
                  attack_samples=1000, boot_strap_st_at=False, bs_data_path=None, bs_mul=1,
-                 hv_cut_off=0.04, gr2_per_dim_ol_path=None, std_dev_at_gr=5, clf_f_string=None,
+                 hv_cut_off=0.04, gr2_per_dim_ol_path=None, std_dev_at_gr=5, clf_type=None,
                  hyp_at_u_data=None, rand_state=None, train_data_size=0.6,
                  train_classifiers=False, cluster_data_path=None, hyp_vol_data_path=None,
                  num_cls=None, cv=10, random_grid_search_iter=25):
@@ -69,7 +65,7 @@ class HypExpSvm:
         self.classifier_training = train_classifiers
         self.results_save_path = results_save_path
 
-        self.clf_f_string = clf_f_string
+        self.clf_type = clf_type
         self.rand_state = rand_state
 
         self.attack_samples = attack_samples
@@ -128,7 +124,7 @@ class HypExpSvm:
     def run_exp(self):
         data_group_1 = dict()
 
-        clf_svm_dict = dict()
+        clf_dict = dict()
 
         gr2_means = self.attack_df.mean()
         gr2_means_fv = gr2_means.drop('user', axis=0).to_numpy().reshape(1, -1)
@@ -151,40 +147,106 @@ class HypExpSvm:
         for user in users_group_1:
             data_group_1[user] = tb_data_group_1.get_data_set(user, neg_sample_sources=None, neg_test_limit=True)
             user_g1_df_dict[user] = self.pop_df[self.pop_df['user'] == user]
-        # Code from line 154-170 is classifier specific, for using a different classifier update the paramater grid and
-        # use classifer from the classfier module they all have very similar interface
+
         if self.classifier_training is True:
-            print(f"training classifiers")
-            # Classifier training grid params, update with classifer specic hyper parameters
-            c_range = np.unique(np.logspace(start=0.1, stop=4, num=100 + 20, dtype=int))
-            grid_svm = {'estimator__C': c_range,
-                        'estimator__gamma': ['auto', 'scale']}
-
             scoring_metric = 'precision'
-
             self.cv = 10 # specify a number for cv fold cross validation
             self.n_iter = 25 #number of iterations for random grid search
-
             precision_tup = list()
             eer_tup = list()
-            # Update classifier on line below for using a different classifer
-            clf_svm_dict = {usr: SvmClassifier(pos_user=data_group_1[usr], random_state=self.rand_state)
-                            for usr in users_group_1}
-            for usr in users_group_1:
-                print(f'training for user {usr}')
-                clf_svm_dict[usr].split_data(data_frame=data_group_1[usr], training_data_size=0.6)
-                clf_svm_dict[usr].random_train_tune_parameters(pram_dist=grid_svm, cv=cv, scoring_metric=scoring_metric,
-                                                               n_itr=n_iter)
-                dump(clf_svm_dict[usr], os.path.join(self.clf_path, f"clf_{usr}_svm_{self.rand_state}.joblib"))
+            print(f"training classifiers")
+            if self.clf_type == 'svm':
+                # Commnet out two lines below if not using an intel processor or sklearnex is not installed
+                from sklearnex import patch_sklearn
+                patch_sklearn()
+                from classifiers.svm_classifier import SvmClassifier
+                # Classifier training grid params, update with classifer specic hyper parameters
+                c_range = np.unique(np.logspace(start=0.1, stop=4, num=100 + 20, dtype=int))
+                grid_svm = {'estimator__C': c_range,
+                            'estimator__gamma': ['auto', 'scale']}
+                # Update classifier on line below for using a different classifer
+                clf_dict = {usr: SvmClassifier(pos_user=data_group_1[usr], random_state=self.rand_state)
+                                for usr in users_group_1}
+                for usr in users_group_1:
+                    print(f'training for user {usr}')
+                    clf_name_string = f"clf_{usr}_{self.clf_type}_{self.rand_state}.joblib"
+
+                    clf_dict[usr].split_data(data_frame=data_group_1[usr], training_data_size=0.6)
+                    clf_dict[usr].random_train_tune_parameters(pram_dist=grid_svm, cv=self.cv, scoring_metric=scoring_metric,
+                                                                   n_itr=self.n_iter)
+                    dump(clf_dict[usr], os.path.join(self.clf_path, clf_name_string))
+
+            elif self.clf_type == 'knn':
+                from classifiers.knn_classifier import KnnClassifier
+                leaf_size = list(range(1, 70))
+                n_neighbors = list(range(1, 50))
+                p = [1, 2]
+                grid_knn = dict(leaf_size=leaf_size, n_neighbors=n_neighbors, p=p)
+                clf_dict = {usr: KnnClassifier(pos_user=data_group_1[usr], random_state=self.rand_state,
+                                                   n_jobs=-1) for usr in users_group_1}
+                for usr in users_group_1:
+                    print(f'training for user {usr}')
+                    clf_name_string = f"clf_{usr}_{self.clf_type}_{self.rand_state}.joblib"
+                    clf_dict[usr].split_data(data_frame=data_group_1[usr], training_data_size=0.6)
+                    clf_dict[usr].random_train_tune_parameters(pram_dist=grid_knn, cv=self.cv,
+                                                                   scoring_metric=scoring_metric,
+                                                                   n_itr=self.n_iter)
+                    dump(clf_dict[usr], os.path.join(self.clf_path, clf_name_string))
+
+            elif self.clf_type == 'rf':
+                # Commnet out two lines below if not using an intel processor or sklearnex is not installed
+                from classifiers.random_forest_classifier import RandomForestClassifier
+                from sklearnex import patch_sklearn
+                patch_sklearn()
+
+                # Number of trees in random forest
+                n_estimators = [int(x) for x in np.linspace(start=200, stop=2000, num=10)]
+                # Number of features to consider at every split
+                max_features = ['auto', 'sqrt']
+                # Maximum number of levels in tree
+                max_depth = [int(x) for x in np.linspace(10, 110, num=11)]
+                max_depth.append(None)
+                # Minimum number of samples required to split a node
+                min_samples_split = [2, 5, 10]
+                # Minimum number of samples required at each leaf node
+                min_samples_leaf = [1, 2, 4]
+                # Method of selecting samples for training each tree
+                bootstrap = [True, False]
+                grid_rf = {'n_estimators': n_estimators,
+                           'max_features': max_features,
+                           'max_depth': max_depth,
+                           'min_samples_split': min_samples_split,
+                           'min_samples_leaf': min_samples_leaf,
+                           'bootstrap': bootstrap}
+                clf_dict = {usr: RandomForestClassifier(pos_user=data_group_1[usr], random_state=self.rand_state,
+                                                       n_jobs=-1) for usr in users_group_1}
+                for usr in users_group_1:
+                    print(f'training for user {usr}')
+                    clf_name_string = f"clf_{usr}_{self.clf_type}_{self.rand_state}.joblib"
+                    clf_dict[usr].split_data(data_frame=data_group_1[usr], training_data_size=0.6)
+                    clf_dict[usr].random_train_tune_parameters(pram_dist=grid_rf, cv=self.cv,
+                                                               scoring_metric=scoring_metric,
+                                                               n_itr=self.n_iter)
+                    dump(clf_dict[usr], os.path.join(self.clf_path, clf_name_string))
+
+
+
+            else:
+                print('classifier not implimented')
+                sys.exit(1)
+
+
             print(f"training classifiers complete")
         else:
             """
             Loading classifiers from disk
             """
             print(f"Loading classifiers")
-
-            clf_svm_dict = {usr: load(os.path.join(self.clf_path, f"clf_{usr}_{self.clf_f_string}.joblib"))
-                            for usr in users_group_1}
+            try:
+                clf_dict = {usr: load(os.path.join(self.clf_path, f"clf_{usr}_{self.clf_type}_{self.rand_state}.joblib"))
+                                for usr in users_group_1}
+            except Exception():
+                traceback.print_exc()
 
             print(f"Loading classifiers complete")
 
@@ -228,15 +290,15 @@ class HypExpSvm:
         Model Classification
         '''
         print(f"Starting model classification")
-        self.test_prd_dict = {usr: clf_svm_dict[usr].classify() for usr in users_group_1}
-        self.test_prd_prob_dict = {usr: clf_svm_dict[usr].predictions_prob for usr in users_group_1}
+        self.test_prd_dict = {usr: clf_dict[usr].classify() for usr in users_group_1}
+        self.test_prd_prob_dict = {usr: clf_dict[usr].predictions_prob for usr in users_group_1}
         print(f"Model classification complete")
 
         """
            Test set and labels extraction
         """
-        test_set = {usr: clf_svm_dict[usr].test_data_frame.drop('labels', axis=1) for usr in users_group_1}
-        test_labels = {usr: clf_svm_dict[usr].test_data_frame.labels.values for usr in users_group_1}
+        test_set = {usr: clf_dict[usr].test_data_frame.drop('labels', axis=1) for usr in users_group_1}
+        test_labels = {usr: clf_dict[usr].test_data_frame.labels.values for usr in users_group_1}
 
         """
             Confusion Matrix 
@@ -253,7 +315,7 @@ class HypExpSvm:
         self.roc_dict = {usr: RocCurve() for usr in users_group_1}
         roc_svm = {usr: self.roc_dict[usr].get_metric(test_set_features=test_set[usr].values,
                                                       test_set_labels=test_labels[usr],
-                                                      classifier=clf_svm_dict[usr].classifier, ax=None)
+                                                      classifier=clf_dict[usr].classifier, ax=None)
                    for usr in users_group_1}
 
         """
@@ -263,8 +325,8 @@ class HypExpSvm:
         self.fcs_dict = {usr: FCS(classifier_name='SVM') for usr in users_group_1}
         self.fcs_plt = {usr: self.fcs_dict[usr].get_metric(
             true_labels=test_labels[usr],
-            predicted_probs=clf_svm_dict[usr].predictions_prob,
-            pred_labels=clf_svm_dict[usr].predictions)
+            predicted_probs=clf_dict[usr].predictions_prob,
+            pred_labels=clf_dict[usr].predictions)
             for usr in users_group_1}
         plt.close('all')
 
@@ -276,9 +338,9 @@ class HypExpSvm:
         self.attack_df_mk = mk_adv.generate_attack()
 
         # Performing attack
-        self.att_prd_mk = {usr: clf_svm_dict[usr].classifier.predict(self.attack_df_mk.values)
+        self.att_prd_mk = {usr: clf_dict[usr].classifier.predict(self.attack_df_mk.values)
                            for usr in users_group_1}
-        att_prd_prob_mk = {usr: clf_svm_dict[usr].classifier.predict_proba(self.attack_df_mk.values)
+        att_prd_prob_mk = {usr: clf_dict[usr].classifier.predict_proba(self.attack_df_mk.values)
                            for usr in users_group_1}
         self.att_prd_prob_mk = {usr: att_prd_prob_mk[usr][:, 1]
                                 for usr in users_group_1}
@@ -291,9 +353,9 @@ class HypExpSvm:
         self.attack_df_kpp = kpp_adv.generate_attack()
 
         # Performing attack
-        self.att_prd_kpp = {usr: clf_svm_dict[usr].classifier.predict(self.attack_df_kpp.values)
+        self.att_prd_kpp = {usr: clf_dict[usr].classifier.predict(self.attack_df_kpp.values)
                             for usr in users_group_1}
-        att_prd_prob_kpp = {usr: clf_svm_dict[usr].classifier.predict_proba(self.attack_df_kpp.values)
+        att_prd_prob_kpp = {usr: clf_dict[usr].classifier.predict_proba(self.attack_df_kpp.values)
                             for usr in users_group_1}
         self.att_prd_prob_kpp = {usr: att_prd_prob_kpp[usr][:, 1]
                                  for usr in users_group_1}
@@ -307,9 +369,9 @@ class HypExpSvm:
         self.attack_df_stat = stat_adv.generate_attack()
 
         # Performing attack
-        self.att_prd_stat = {usr: clf_svm_dict[usr].classifier.predict(self.attack_df_stat.values)
+        self.att_prd_stat = {usr: clf_dict[usr].classifier.predict(self.attack_df_stat.values)
                              for usr in users_group_1}
-        att_prd_prob_stat = {usr: clf_svm_dict[usr].classifier.predict_proba(self.attack_df_stat.values)
+        att_prd_prob_stat = {usr: clf_dict[usr].classifier.predict_proba(self.attack_df_stat.values)
                              for usr in users_group_1}
         self.att_prd_prob_stat = {usr: att_prd_prob_stat[usr][:, 1]
                                   for usr in users_group_1}
@@ -328,10 +390,10 @@ class HypExpSvm:
             self.attack_df_hyp = self.attack_df_hyp
 
         # Performing attack
-        self.att_prd_hyp = {usr: clf_svm_dict[usr].classifier.predict(
+        self.att_prd_hyp = {usr: clf_dict[usr].classifier.predict(
             self.attack_df_hyp.drop(["cluster_number"], axis=1).values)
                             for usr in users_group_1}
-        att_prd_prob_hyp = {usr: clf_svm_dict[usr].classifier.predict_proba(
+        att_prd_prob_hyp = {usr: clf_dict[usr].classifier.predict_proba(
             self.attack_df_hyp.drop(["cluster_number"], axis=1).values)
                             for usr in users_group_1}
         self.att_prd_prob_hyp = {usr: att_prd_prob_hyp[usr][:, 1]
@@ -348,26 +410,27 @@ class HypExpSvm:
         df_prob_mk = pd.DataFrame.from_dict(self.att_prd_prob_mk)
 
         df_hyp = pd.concat([df_hyp, self.attack_df_hyp['cluster_number']], axis=1)
-        df_hyp.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_hyp_at_prd_svm.csv"), index=False,
+        df_hyp.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_hyp_at_prd_{self.clf_type}.csv"), index=False,
                       mode='w+')
-        df_stat.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_stat_at_prd_svm.csv"), index=False,
+        df_stat.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_stat_at_prd_{self.clf_type}.csv"), index=False,
                        mode='w+')
-        df_kpp.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_kpp_at_prd_svm.csv"), index=False,
+        df_kpp.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_kpp_at_prd_{self.clf_type}.csv"), index=False,
                       mode='w+')
-        df_mk.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_mk_at_prd_svm.csv"), index=False, mode='w+')
+        df_mk.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_mk_at_prd_{self.clf_type}.csv"),
+                     index=False, mode='w+')
 
         df_prob_hyp = pd.concat([df_hyp, self.attack_df_hyp['cluster_number']], axis=1)
 
-        df_prob_hyp.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_hyp_at_prd_prob_svm.csv"),
+        df_prob_hyp.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_hyp_at_prd_prob_{self.clf_type}.csv"),
                            index=False,
                            mode='w+')
-        df_prob_stat.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_stat_at_prd_prob_svm.csv"),
+        df_prob_stat.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_stat_at_prd_prob_{self.clf_type}.csv"),
                             index=False,
                             mode='w+')
-        df_prob_kpp.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_kpp_at_prd_prob_svm.csv"),
+        df_prob_kpp.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_kpp_at_prd_prob_{self.clf_type}.csv"),
                            index=False,
                            mode='w+')
-        df_prob_mk.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_mk_at_prd_prob_svm.csv"), index=False,
+        df_prob_mk.to_csv(os.path.join(self.results_save_path, f"{self.active_gr}_mk_at_prd_prob_{self.clf_type}.csv"), index=False,
                           mode='w+')
 
         df_hyp = df_hyp.drop("cluster_number", axis=1)
@@ -437,31 +500,22 @@ class HypExpSvm:
         df_sm1.users_cracked_per = df_sm1.users_cracked_per.astype("float64")
         df_sm1.attack_type = df_sm1.attack_type.astype("string")
 
-        attack_per_plt_sm = plt.figure(figsize=(19.2, 10.8))
-        attack_per_ax_sm = attack_per_plt_sm.add_subplot(1, 1, 1)
-        sns.lineplot(data=df_sm, x="try_num", y="users_cracked_per", hue="attack_type", ax=attack_per_ax_sm, alpha=0.7)
-        attack_per_ax_sm.set_title(f"Attack performance comparison DSN dataset group {self.active_gr[-1]} ")
-        attack_per_plt_sm.tight_layout()
-        attack_per_plt_sm.savefig(
-            os.path.join(self.results_save_path, f"{self.active_gr}_svm_attack_speed_comp_100.png"))
-        plt.close('all')
-
         attack_per_plt_sm1 = plt.figure(figsize=(19.2, 10.8))
         attack_per_ax_sm1 = attack_per_plt_sm1.add_subplot(1, 1, 1)
         sns.lineplot(data=df_sm1, x="try_num", y="users_cracked_per", hue="attack_type", ax=attack_per_ax_sm1,
                      alpha=0.7)
-        attack_per_ax_sm1.set_title(f"Attack performance comparison DSN dataset group {self.active_gr[-1]} ")
+        attack_per_ax_sm1.set_title(f"Attack performance comparison group {self.active_gr[-1]} ")
         attack_per_plt_sm1.tight_layout()
         attack_per_plt_sm1.savefig(
-            os.path.join(self.results_save_path, f"{self.active_gr}_svm_attack_speed_comp_10.png"))
+            os.path.join(self.results_save_path, f"{self.active_gr}_{self.clf_type}_attack_speed_comp_10.png"))
         plt.close('all')
 
         attack_per_plt = plt.figure(figsize=(19.2, 10.8))
         attack_per_ax = attack_per_plt.add_subplot(1, 1, 1)
         sns.lineplot(data=df, x="try_num", y="users_cracked_per", hue="attack_type", ax=attack_per_ax, alpha=0.7)
-        attack_per_ax.set_title(f"Attack performance comparison DSN dataset group {self.active_gr[-1]} ")
+        attack_per_ax.set_title(f"Attack performance comparison group {self.active_gr[-1]} ")
         attack_per_plt.tight_layout()
-        attack_per_plt.savefig(os.path.join(self.results_save_path, f"{self.active_gr}_svm_attack_speed_comp.png"))
+        attack_per_plt.savefig(os.path.join(self.results_save_path, f"{self.active_gr}_{self.clf_type}_attack_speed_comp_{self.attack_samples}.png"))
         plt.close('all')
 
         return

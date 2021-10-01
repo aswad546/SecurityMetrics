@@ -47,7 +47,7 @@ def get_test_train_sets(data_frame, training_data_size, random_state):
     rf_data_labels = data_frame['labels']
     rf_data = data_frame.drop(['user', 'labels'], axis=1)
     train_data, test_data, train_labels, test_labels = \
-        train_test_split(rf_data.values, rf_data_labels.values, test_size=test_size, random_state=random_state)
+        train_test_split(rf_data.values, rf_data_labels.values.ravel(), test_size=test_size, random_state=random_state)
     training_data_frame = pd.DataFrame(train_data)
     training_data_frame.insert(len(training_data_frame.columns), 'labels', train_labels)
     test_data_frame = pd.DataFrame(test_data)
@@ -66,7 +66,7 @@ def predict(classifier, test_data_frame):
 def train_best_parametres(classifier, train_data_frame, pram_grid, cv, scoring_metric=None, n_jobs=-1):
     grid = GridSearchCV(classifier, param_grid=pram_grid, cv=cv, scoring=scoring_metric, n_jobs=n_jobs)
     X = train_data_frame.drop('labels', axis=1)
-    y = train_data_frame['labels'].values
+    y = train_data_frame['labels'].values.ravel()
     grid.fit(X, y)
     classifier = grid.best_estimator_
 
@@ -79,7 +79,7 @@ def random_train_best_parametres(classifier, train_data_frame, pram_dist, cv, sc
     grid = RandomizedSearchCV(classifier, param_distributions=pram_dist, cv=cv, scoring=scoring_metric,
                               n_iter=n_itr, n_jobs=n_jobs, random_state=random_state)
     X = train_data_frame.drop('labels', axis=1)
-    y = train_data_frame['labels'].values
+    y = train_data_frame['labels'].values.ravel()
     grid.fit(X, y)
     classifier = grid.best_estimator_
 
