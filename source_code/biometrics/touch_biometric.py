@@ -38,7 +38,7 @@ An Implementation of:
 
 import math
 import cmath
-from source_code.biometrics.biometric import Biometric
+from biometrics.biometric import Biometric
 
 
 class TouchBiometric(Biometric):

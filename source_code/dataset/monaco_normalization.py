@@ -65,21 +65,24 @@ class MonacoNormalize(DatasetOperation):
         @return monaco normalized dataframe
         """
         df = data
-
+        # print(df.head(10).to_string())
         if 'labels' in df.columns:
             labels = df['labels']
             df = df.drop('labels', axis=1)
             ins_labels = True
         else:
             ins_labels = False
-        users = df.pos_user
+        #careful here
+        users = df.user
         pos_user_fil = df['user'] == pos_user
 
         self.pos_user_mean_vec = df[pos_user_fil].drop('user', axis=1).to_numpy().mean(axis=0).tolist()
         self.pos_user_std_vec = df[pos_user_fil].drop('user', axis=1).to_numpy().std(axis=0).tolist()
+
         res_df = pd.DataFrame()
         self.pos_user = pos_user
         col_name = df.drop("user", axis=1).columns
+        # print(col_name)
         res_df['user'] = users
 
         for col, mean, std in zip(col_name, self.pos_user_mean_vec, self.pos_user_std_vec):
@@ -88,6 +91,7 @@ class MonacoNormalize(DatasetOperation):
             ub = np.ceil(mean + (1 * std))
             self.bounds.loc[col, 'lower_bound'] = lb
             self.bounds.loc[col, 'upper_bound'] = ub
+            # print('Here')
             res_df[col] = self.monormalize(feature=fd, lower_bound=lb, upper_bound=ub)
 
         if output_path is not None:
@@ -95,6 +99,11 @@ class MonacoNormalize(DatasetOperation):
 
         if ins_labels is True:
             res_df['labels'] = labels
+
+        # print(df.to_string())
+        #644
+        # print()
+        # print(res_df.to_string())
         return res_df
 
     def monormalize(self, feature, lower_bound, upper_bound):
@@ -107,6 +116,10 @@ class MonacoNormalize(DatasetOperation):
         """
         lower_bound = lower_bound
         upper_bound = upper_bound
-        n_feat = np.maximum(0, np.minimum(1, (feature - lower_bound) / (upper_bound - lower_bound)))
+        diff = upper_bound -lower_bound
+        if (upper_bound-lower_bound == 0):
+            # print('Touching here')
+            diff = 1
+        n_feat = np.maximum(0, np.minimum(1, (feature - lower_bound) / (diff)))
 
         return n_feat

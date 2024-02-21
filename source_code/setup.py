@@ -38,8 +38,8 @@ REQUIRED = [
 
 # Optional packages
 EXTRAS = {
-    'seaborn',
-    'sklearnex'
+    'visualization': ['seaborn'],
+    'performance': ['sklearnex']
 }
 
 # If you do change the License, remember to change the Trove Classifier for that!

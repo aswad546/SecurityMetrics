@@ -8,8 +8,8 @@ Example Usage of dataset Parsers
 def hmog_touch_usage_example():
     from external_dataset_parsers import hmog_parser
 
-    hmog_in = 'C:\\wd\\research\\data-sufficiency_uniqueness\\SecurityMetrics\\raw_data\\hmog_dataset\\public_dataset'
-    hmog_out = 'C:\\wd\\research\\data-sufficiency_uniqueness\\SecurityMetrics\\processed_data\\hmog_touch\\df_10'
+    hmog_in = 'D:\\Waterloo Work\\SecurityMetrics\\raw_data\\hmog_dataset\\public_dataset'
+    hmog_out = 'D:\\Waterloo Work\\SecurityMetrics\\processed_data\\hmog_touch\\df_10'
 
     ''' 
     Read the dataset from raw, parse it, and write the feature vector as a dataframe
@@ -24,7 +24,7 @@ def hmog_touch_usage_example():
 def dsn_keystroke_usage_example():
     from external_dataset_parsers import dsn_keystroke_parser
 
-    raw_data_path = 'C:\\wd\\research\\data-sufficiency_uniqueness\\SecurityMetrics\\raw_data\\dsn_keystroke\\DSL-StrongPasswordData.csv'
+    raw_data_path = 'D:\\Waterloo Work\\SecurityMetrics\\raw_data\\dsn_keystroke\\DSL-StrongPasswordData.csv'
     output_path = 'C:\\wd\\research\\data-sufficiency_uniqueness\\SecurityMetrics\\processed_data\\dsn_keystroke\\df'
 
     ''' 

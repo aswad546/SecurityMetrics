@@ -25,14 +25,14 @@ This class implements K-Nearest Neighbors classifier
 """
 
 import os
-from source_code.classifiers.classifier import Classifier
+from classifiers.classifier import Classifier
 import pandas as pd
 from sklearn.neighbors import KNeighborsClassifier
-from source_code.utilities.classifier_utilities import get_test_train_sets
-from source_code.utilities.classifier_utilities import train_best_parametres
-from source_code.utilities.classifier_utilities import random_train_best_parametres
-from source_code.utilities.classifier_utilities import predict
-from source_code.utilities.classifier_utilities import predict_proba
+from utilities.classifier_utilities import get_test_train_sets
+from utilities.classifier_utilities import train_best_parametres
+from utilities.classifier_utilities import random_train_best_parametres
+from utilities.classifier_utilities import predict
+from utilities.classifier_utilities import predict_proba
 
 
 class KnnClassifier(Classifier):

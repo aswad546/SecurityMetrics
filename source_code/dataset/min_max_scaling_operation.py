@@ -53,7 +53,7 @@ class MinMaxScaling(DatasetOperation):
         """
         self.min_max_scaler = self.set_min_max_scaler(scaler_tuple)
         self.scaled_df = data
-        self.min_max_scaler_obj = preprocessing.MinMaxScaler(self.min_max_scaler, True)
+        self.min_max_scaler_obj = preprocessing.MinMaxScaler(feature_range=self.min_max_scaler, copy=True)
         labels = None
         if 'labels' in self.scaled_df:
             labels = self.scaled_df['labels']
