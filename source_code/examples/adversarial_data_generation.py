@@ -1,9 +1,9 @@
 import pandas as pd
 
-from source_code.adversaries.kpp_attack import KppAttack
-from source_code.adversaries.mk_attack import MkAttack
-from source_code.adversaries.stat_attack import StatAttack
-from source_code.adversaries.hyp_attack import HypVolAttack
+from adversaries.kpp_attack import KppAttack
+from adversaries.mk_attack import MkAttack
+from adversaries.stat_attack import StatAttack
+from adversaries.hyp_attack import HypVolAttack
 from pathlib import Path
 import os
 import sys
@@ -15,7 +15,7 @@ cluster_data_path = os.path.join(data_path, 'cluster_data')
 hyp_vol_data_path = os.path.join(data_path, 'hyper_volume_data')
 
 feature_paths = {f'gr{gr}': os.path.join(data_path, f'df_group_{gr}_gr_scl.csv') for gr in range(1, 3)}
-
+print(feature_paths)
 
 data = {f'{gr}': pd.read_csv(path) for gr, path in feature_paths.items()}
 
@@ -31,11 +31,11 @@ stat_adv = StatAttack(data=data['gr2'], required_attack_samples=num_samples, boo
                       run_bootstrap=True, bootstrap_iter=100)
 stat_adv_data = stat_adv.generate_attack()
 
-num_cls = 6
-rand_state = 42
-hyp_adv =  HypVolAttack(data=data['gr2'], equal_user_data=False, random_state=rand_state, calc_clusters=False,
-                               clusters_path=cluster_data_path, gr_num=1, cluster_count=num_cls,
-                               ol_path=hyp_vol_data_path, attack_samples=num_samples,
-                               ol_cut_off=0, std_dev_at_gr=None)
-hyp_adv_data = hyp_adv.generate_attack()
-a = 1
+# num_cls = 6
+# rand_state = 42
+# hyp_adv =  HypVolAttack(data=data['gr2'], equal_user_data=False, random_state=rand_state, calc_clusters=False,
+#                                clusters_path=cluster_data_path, gr_num=1, cluster_count=num_cls,
+#                                ol_path=hyp_vol_data_path, attack_samples=num_samples,
+#                                ol_cut_off=0, std_dev_at_gr=None)
+# hyp_adv_data = hyp_adv.generate_attack()
+# a = 1

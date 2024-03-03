@@ -31,7 +31,7 @@ Rule Them All
 }
 
 """
-from source_code.adversaries.adversarial_attacks import Attacks
+from adversaries.adversarial_attacks import Attacks
 import pandas as pd
 import numpy as np
 

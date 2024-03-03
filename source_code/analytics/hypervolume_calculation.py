@@ -23,7 +23,7 @@ This class takes in the path of the data files and file name to calculate hyperv
 """
 import os
 
-from analytics.analytics import Analytics
+from analytics import Analytics
 import subprocess
 from pathlib import Path
 
@@ -36,7 +36,7 @@ class CalcHyperVolume(Analytics):
         """
         root_path = Path(__file__).parent.parent.parent
         # Enter path for Rscript shell here
-        self.command = 'C:/Program Files/R/R-4.0.2/bin/Rscript'
+        self.command = 'C:/Program Files/R/R-4.3.2/bin/Rscript'
         self.arg = f"--vanilla"
         # Enter path for R script for calculating hypervolumes
         self.path2script = os.path.join(root_path, 'source_code\\analytics\\hyper_vol_usage.R')
@@ -49,3 +49,6 @@ class CalcHyperVolume(Analytics):
     def get_analytics(self):
         retcode = subprocess.call([self.command, self.arg, self.path2script, self.dir_name, self.file_name], shell=True)
         return retcode
+
+hyp = CalcHyperVolume('D:\\Waterloo Work\\SecurityMetrics\\processed_data\\hmog_touch', 'df_10.csv')
+hyp.get_analytics()

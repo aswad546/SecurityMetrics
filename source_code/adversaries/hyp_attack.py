@@ -25,7 +25,7 @@ This class implements our Hypervolume attack
 Note: if calculating cluster then you have to calculate hypervolumes using the R script (hyper_vol_usage.R)
 TODO Impliment Hypervolume calculation form this class
 """
-from source_code.adversaries.adversarial_attacks import Attacks
+from adversaries.adversarial_attacks import Attacks
 import os
 import seaborn as sns
 import matplotlib.pyplot as plt

@@ -52,8 +52,8 @@ This class implements Vanilla Stat attack which is inspired by these three paper
   publisher={ACM New York, NY, USA}
 }
 """
-from source_code.adversaries.adversarial_attacks import Attacks
-from source_code.synth_data_gen.gauss_blob_generator import GaussBlob
+from adversaries.adversarial_attacks import Attacks
+from synth_data_gen.gauss_blob_generator import GaussBlob
 import pandas as pd
 import numpy as np
 import os
@@ -79,7 +79,7 @@ class StatAttack(Attacks):
     def generate_attack(self):
         if 'user' in self.attack_df.columns:
             # Using numpy arrays for more efficient usage
-            feat_list = self.attack_df.columns.drop('user').to_list()
+            featl_ist = self.attack_df.columns.drop('user').to_list()
         else:
             # Using numpy arrays for more efficient usage
             feat_list = self.attack_df.columns.drop('user').to_list()

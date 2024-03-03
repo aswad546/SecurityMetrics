@@ -17,6 +17,10 @@ from dataset.monaco_normalization import MonacoNormalize
 from dataset.min_max_scaling_operation import MinMaxScaling
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 
+from external_dataset_parsers import dsn_keystroke_parser
+
+from dataset.standard_scaling_operation import StandardScaling
+
 
 """
 Parse and store raw touch data from HMOG
@@ -68,7 +72,7 @@ def preprocess_hmog_touch_data(root_path, df=None):
     return Data
 
 
-if __name__ == "__main__":
+def main():
     root_path = Path(__file__).parent.parent
     data_metric_save_path = os.path.join(root_path, 'experiment_results\\touch_analytics_342329_outlier_removed\\')
     if not os.path.exists(data_metric_save_path):
@@ -146,6 +150,58 @@ if __name__ == "__main__":
     fcs_knn.get_metric(true_labels=test_labels_knn, predicted_probs=clf_knn.predictions_prob,
                     pred_labels=clf_knn.predictions)
     plt.savefig(os.path.join(data_metric_save_path, 'FCS_KNN.png'))
+
+
+
+def split_touch_data_into_groups():
+    root_path = Path(__file__).parent.parent
+    raw_bio_data = os.path.join(root_path, 'processed_data\\hmog_touch\\df_10.csv')
+
+    grouped = BioDataSet(feature_data_path=raw_bio_data).feature_df.groupby('user')
+    # Initialize empty dataframes to store the first 50 users and the last 50 users
+    df_first_50 = pd.DataFrame()
+    df_last_50 = pd.DataFrame()
+
+    # Iterate over each group and concatenate the rows to the respective dataframes
+    for user, group_data in grouped:
+        if user <= 657486:
+            df_first_50 = pd.concat([df_first_50, group_data])
+        else:
+            df_last_50 = pd.concat([df_last_50, group_data])
+
+    # Save the first 50 users to a file
+    df_first_50.to_csv('df_group_1.csv', index=False)
+
+    # Save the last 50 users to a file
+    df_last_50.to_csv('df_group_2.csv', index=False)
+
+def split_keyboard_data_into_groups():
+    raw_data_path = 'D:\\Waterloo Work\\SecurityMetrics\\raw_data\\dsn_keystroke\\DSL-StrongPasswordData.csv'
+    output_path = 'D:\\Waterloo Work\\SecurityMetrics\\processed_data\\dsn_keystroke\\df'
+    df = dsn_keystroke_parser.DSNParser().raw_to_feature_vectors(raw_data_path, output_path)
+
+    unique_users = df['user'].unique()
+
+    # Split the unique user IDs into two parts
+    split_index = len(unique_users) // 2
+    print(split_index)
+    first_half_users = unique_users[:split_index]
+    second_half_users = unique_users[split_index:]
+
+    # Split the DataFrame based on the user IDs
+    df_first_half = df[df['user'].isin(first_half_users)]
+    df_second_half = df[df['user'].isin(second_half_users)]
+
+    df_first_half = StandardScaling().operate(df_first_half)
+    df_second_half = StandardScaling().operate(df_second_half)
+    # Save the DataFrames to CSV files
+    df_first_half.to_csv('first_half_users.csv', index=False)
+    df_second_half.to_csv('second_half_users.csv', index=False)
+
+
+if __name__ == "__main__":
+    split_keyboard_data_into_groups()
+    pass
 
 
  

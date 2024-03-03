@@ -2,11 +2,13 @@ import time
 from pathlib import Path
 import pandas as pd
 import os
-from source_code.dataset.biometric_dataset import BioDataSet
-from source_code.dataset.low_variance_feature_removal import LowVarFeatRemoval
-from source_code.utilities.hyp_at_exp_paper_svm import HypExp
+from dataset.biometric_dataset import BioDataSet
+from dataset.low_variance_feature_removal import LowVarFeatRemoval
+from utilities.hyp_at_exp_paper_svm import HypExp
 import matplotlib.pyplot as plt
 import seaborn as sns
+from dataset.dim_red_pca_operation import PcaDimRed
+from dataset.standard_scaling_operation import StandardScaling
 
 # Paths
 root_path = Path(__file__).parent.parent.parent
@@ -18,7 +20,8 @@ pos_user_per_dim_ol_path = os.path.join(hyp_vol_data_path, f"gr1_hyper_vol_size_
 
 classifier_path = os.path.join(data_path, 'trained_clf')
 data_metric_save_path = os.path.join(data_path, 'exp_results')
-feature_paths = {f'gr{gr}': os.path.join(data_path, f'df_group_{gr}_gr_scl.csv') for gr in range(1, 3)}
+feature_paths = {f'gr{gr}': os.path.join(data_path, f'df_group_{gr}.csv') for gr in range(1, 3)}
+
 data = {f'{gr}': pd.read_csv(path) for gr, path in feature_paths.items()}
 
 num_samples = 100
@@ -26,7 +29,7 @@ num_cls = 6
 rand_state = 42
 train_base_classifiers = False
 boot_strap_st_at = False
-classifier_list = ['svm', 'knn', 'rf']
+classifier_list = ['knn']
 
 experiments = {clf: HypExp(pop_df=data['gr1'], attack_df=data['gr2'], pop_classifier_path=classifier_path,
                  pos_user_per_dim_ol_path=pos_user_per_dim_ol_path, active_gr='gr1',
@@ -42,7 +45,7 @@ _ = [experiments[clf].run_exp() for clf in classifier_list]
 
 # Gathering classifier base performance
 per_mes = ['Precision', 'AuRoc', 'EER']
-col_index = pd.MultiIndex.from_product([['svm', 'knn', 'rf'], ['Precision', 'AuRoc', 'EER']],
+col_index = pd.MultiIndex.from_product([['knn'], ['Precision', 'AuRoc', 'EER']],
                                        names=['clf', 'metric'])
 training_performance_df = pd.DataFrame(columns=col_index)
 user_gr_1 = data['gr1'].user.unique()

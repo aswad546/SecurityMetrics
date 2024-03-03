@@ -14,7 +14,7 @@ def hmog_touch_usage_example():
     ''' 
     Read the dataset from raw, parse it, and write the feature vector as a dataframe
     '''
-    # df = hmog_parser.HMOGParser().raw_to_feature_vectors(hmog_in, hmog_out)
+    df = hmog_parser.HMOGParser().raw_to_feature_vectors(hmog_in, hmog_out)
     ''' 
     Read the parsed dataset from feature vector format as dataframe
     '''
@@ -25,7 +25,7 @@ def dsn_keystroke_usage_example():
     from external_dataset_parsers import dsn_keystroke_parser
 
     raw_data_path = 'D:\\Waterloo Work\\SecurityMetrics\\raw_data\\dsn_keystroke\\DSL-StrongPasswordData.csv'
-    output_path = 'C:\\wd\\research\\data-sufficiency_uniqueness\\SecurityMetrics\\processed_data\\dsn_keystroke\\df'
+    output_path = 'D:\\Waterloo Work\\SecurityMetrics\\processed_data\\dsn_keystroke\\df'
 
     ''' 
     Read the dataset from raw, parse it, and write the feature vector as a dataframe

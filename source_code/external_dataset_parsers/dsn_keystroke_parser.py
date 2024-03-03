@@ -35,7 +35,7 @@ import sys
 
 import pandas as pd
 
-from source_code.external_dataset_parsers.external_parser import ExternalParser
+from external_dataset_parsers.external_parser import ExternalParser
 
 """
     Parses the DSN keystroke data

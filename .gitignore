@@ -1,0 +1,9 @@
+raw_data
+processed_data
+source_code/build
+source_code/dist
+source_code/SecurityMetrics.egg-info
+*/__pycache__
+experiment_results
+**/__pycache__/
+*.pyc
